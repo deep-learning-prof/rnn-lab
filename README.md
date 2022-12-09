@@ -87,10 +87,42 @@ Let's run the file and see the model that it creates.
 
 #### Questions
 1. Describe the architecture of the RNN. Provide details about the layers' size, type, and
-   number. Also provide details about the activation functions used. 
+   number. Also provide details about the activation functions used.
+
+**Answer**. The model is formed by 6 layers, 
+
+*Layer 1*. This is the input layer. The size of the input is `(None,)`. None indicates that
+the number of samples to be processed in batch is variable (i.e, the batch size). The empty
+field next to none indicates that the size of the inputs (i.e.,  the reviews) are also
+variable. 
+
+*Layer 2*. The TextVectoriztion layer comes next. The input and ouputs of this layer are also variable
+since it only replaces words with tokens. 
+
+*Layer 3*. The Embedding layer also has a variable input. The output yields a variable number of vectors
+of size 64. 
+
+*Layer 4*. The bidrectional LSTM layer outputs a vector of size 128. 
+
+*Layer 5*. This dense layer outputs a vector of size 64. 
+
+*Layer 6*. This dense layer finally condenses the model into a scalar output. 
+
+
 2. Build a two-column table. The first row should have the lines of code that define the layers. The
    second column should have a screen shot of the corresponding layer in the architecture figure.
+
+*Layer 1* this layer is atuanatically created by TensorFlow. 
+*Layer 2* this layer is given by `encoder = tf.keras.layers.TextVectorization(max_tokens=VOCAB_SIZE)`
+*Layer 3* this layer is defined by 
+`model.add(tf.keras.layers.Embedding(input_dim=len(encoder.get_vocabulary()), output_dim=64, mask_zero=True))`
+*Layer 4* is defined by `model.add(tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(64)))`
+*Layer 5* is defined by `model.add(tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(64)))` 
+*Layer 6* is defibed by `model.add(tf.keras.layers.Dense(1))`
+
 3. Draw the input and output tensors and label its sizes for each layer. 
+
+**Answer** You should be able to draw them based on the previous answers.
 
 ### The `training-rnn.py` file
 Now that we have defined the architecture of the model, we are ready to train it. The training
@@ -102,9 +134,19 @@ Lets run the file to train the model.
 
 #### Questions
 1. Which variables in the code are used as the training dataset by the function `fit`?
+
+**Answer**. `train_dataset`
+
 2. Which variables in the code are used as the testing dataset by the function `fit`?
+**Answer**. `test_dataset`
+
 3. Is accuracy a good performance measure? Why?
+**Answer** Since we are dealing with a binary classification problem, i.e., the review is
+*either positive or negative, and we have a balanced dataset, accuracy is a good measure. 
+
 4. Is binary cross-entropy the appropriate loss function?  Why not use categorical cross-entropy?
+We use binary cross-entropy because our labels are either 1 or 0.  
+
 
 ### The `analysis.py` file
 Now that we have a trained model, we can observe the training error, testing error, and accuracy. 
@@ -116,15 +158,32 @@ Run the file to generate the plots
 
 #### Questions
 3. We are using the binary cross-entropy (CCE) to measure the loss. 
-   Would a larger CCE or smaller CCE result in a lower testing error?  
+   Would a larger CCE or smaller CCE result in a lower testing error?
+
+   **Answer**. A larger CCE results in a larger testing error. 
+
 4. What is the accuracy of the model?
+
+   **Answer** The accuracy indicates the percentage of correctly classified texts. 
+
 5. Has the training/testing accuracy converged in the accuracy plot?
+
+**Answer** We cannot tell since we only trained for one epoch. 
+
 6. Has the training/testing loss converged  in the loss plot?
+
+**Answer** We cannot tell since we only trained for one epoch. 
+
 7. Did the difference between the training and testing loss/accuracy decreased or     
    increased across epochs? If it increased and decreased in the plot specify in which
    epochs it increased/decreased? 
+
+**Answer** We cannot tell since we only trained for one epoch.
+
 8. Give the potential reasons that can explain the low accuracy of the model (anything 
    below 90% is considered low)
+
+**Answer** We have 0.52 accuracy. This is low. Probably because we only trained for one epoch. 
 
 ## Updating the code to improve performance. 
 Now that you have a trained model, lets see if we can improve it. We can change the training
@@ -134,8 +193,29 @@ parameters and the model itself.
 1. Based on your answers to Q.5 in the `analysis.py` file [section](#the-analysispy-file), 
    make changes to the training parameters to improve the testing accuracy and loss. 
 2. Describe your changes. 
+
+**Answer** Lets start with training the model with more epochs. One epoch is not enough to evaluate if
+the model is under or overfitting. I changed the number of epochs from 1 to 5 and obtained the following
+plots. 
+
+![Accuracy plot after 5 epochs](accuracy-5.png)
+![Loss plot after 5 epochs](loss-5.png)
+
+We see that the testing accuracy starts to decrease at the last epoch. This suggests that the model is
+starting to overfit. However, we would need to run additional epochs to ensure this is not just a
+temporary decrease and future epochs can improve the accuracy. Recall that the loss function is
+non-linear and perhaps we landed on a local minimum. Similarly, the loss function starts to increase
+during the last two epochs. 
+
+Besides increasing the number of epochs, we can use additional convolutional layers after the
+bidirectional layer. We can also add an additional bidirectional or regular LSTM layer. The first dense
+layer can be replaced by a convolutional layer. 
+
 3. Run the `training.py` and `analysis.py` files with your new parameters. 
 4. Did the testing performance improve? Explain why or why not. 
+
+**Answer** The testing performance increased after increasing the number of epochs. We can achieve an
+accuracy lose to 90 percent, which is good. 
 
 ### RNN Model updates
 1. Based on your answers to Q.5 in the `analysis.py` file [section](#the-analysispy-file), make changes
@@ -143,3 +223,4 @@ parameters and the model itself.
 2. Describe your changes. 
 3. Run the `training.py` and `analysis.py` files with your new parameters. 
 4. Did the testing performance improve? Explain why or why not. 
+**See answers above**
