@@ -38,10 +38,29 @@ train_dataset = train_dataset.shuffle(BUFFER_SIZE).batch(BATCH_SIZE).prefetch(tf
 test_dataset = test_dataset.batch(BATCH_SIZE).prefetch(tf.data.AUTOTUNE)
 
 """
-Load our untrained RNN model 
+Build the encoder
 """
-model = tf.keras.models.load_model('untrained-rnn-model')
+VOCAB_SIZE = 1000
+encoder = tf.keras.layers.TextVectorization(max_tokens=VOCAB_SIZE)
+encoder.adapt(train_dataset.map(lambda text, label: text))
 
+
+"""
+Build the RNN. Our RNN model will have an encoding layer that replaces the words in our text
+with a number, an embedding layer that replaces the number with a vector, a bi-directional
+LSTM, a dense layer, and an classification layer.  
+
+"""
+model = tf.keras.models.Sequential()
+model.add(encoder)
+model.add(tf.keras.layers.Embedding(
+        input_dim=len(encoder.get_vocabulary()),
+        output_dim=64,
+        # Use masking to handle the variable sequence lengths
+        mask_zero=True))
+model.add(tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(64)))
+model.add(tf.keras.layers.Dense(64, activation='relu'))
+model.add(tf.keras.layers.Dense(1))
 
 """
 Training settings. We use default values for binary classification problems
